@@ -6,5 +6,6 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "easyocr>=1.7.2",
+    "fastapi[standard]>=0.128.5",
     "uvicorn>=0.40.0",
 ]

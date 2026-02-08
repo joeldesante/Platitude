@@ -18,6 +18,7 @@ services:
 
   db:
     image: postgis/postgis:16-3.4
+    platform: linux/amd64
     container_name: postgres_postgis
     restart: always
     environment:
