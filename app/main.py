@@ -305,6 +305,5 @@ def health_check():
     """Detailed health check"""
     return {
         "status": "healthy",
-        "database": "connected",
         "timestamp": datetime.utcnow()
     }
