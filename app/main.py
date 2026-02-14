@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database import Base, Vehicle, PlateSighting, Plate, DATABASE_URL
+from app.database import Base, Vehicle, PlateSighting, Plate, DATABASE_URL
 
 # Create FastAPI app
 app = FastAPI(title="Vehicle Tracking API", version="1.0.0")

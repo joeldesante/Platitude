@@ -1,56 +1,54 @@
-from psycopg_pool import ConnectionPool
 import sqlalchemy as sa
-from sqlalchemy import create_engine, Integer, String, Float, DateTime, Column, ForeignKey
+from sqlalchemy import String, Float, DateTime, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship, Mapped
-import os
-from uuid import uuid4
+from sqlalchemy.orm import DeclarativeBase, relationship, Mapped, mapped_column
 from datetime import datetime
+from uuid import UUID as UUIDType, uuid4
+import os
 
+# Fix: Add +psycopg to use the psycopg driver
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/appdb",
-)
-
-pool = ConnectionPool(
-    conninfo=DATABASE_URL,
-    min_size=1,
-    max_size=10,
-    open=False,
+    "postgresql+psycopg://postgres:postgres@localhost:5432/appdb",
 )
 
 ### Models
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
+
 
 class Vehicle(Base):
-    __tablename__ = "vehicles"
-
-    id: Mapped[UUID] = sa.Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    make: Mapped[str] = sa.Column(sa.String(40), nullable=False)
-    model: Mapped[str] = sa.Column(sa.String(40), nullable=False)
-    year: Mapped[str] = sa.Column(sa.String(4), nullable=False)
-    color: Mapped[str] = sa.Column(sa.String(20), nullable=False)
-
-class PlateSighting(Base): 
-    __tablename__ = "platesighting"
+    __tablename__ = "vehicle"
     
-    id: Mapped[UUID] = sa.Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    longitude: Mapped[float] = sa.Column(sa.Float, nullable=False)
-    latitude: Mapped[float] = sa.Column(sa.Float, nullable=False)
-    timestamp: Mapped[DateTime] = sa.Column(sa.DateTime, nullable=False)
-    vehicle_id: Mapped[UUID] = sa.Column(UUID(as_uuid=True), sa.ForeignKey("vehicles.id"), nullable=True)
-    plate_id: Mapped[UUID] = sa.Column(UUID(as_uuid=True), sa.ForeignKey("plates.id"), nullable=False)
+    id: Mapped[UUIDType] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    make: Mapped[str] = mapped_column(String(40), nullable=False)
+    model: Mapped[str] = mapped_column(String(40), nullable=False)
+    year: Mapped[str] = mapped_column(String(4), nullable=False)
+    color: Mapped[str] = mapped_column(String(20), nullable=False)
+    
+    # Uncomment if you want the relationship back
+    # sightings: Mapped[list["PlateSighting"]] = relationship(back_populates="vehicle")
+
+
+class PlateSighting(Base):
+    __tablename__ = "plate_sighting"
+    
+    id: Mapped[UUIDType] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    longitude: Mapped[float] = mapped_column(Float, nullable=False)
+    latitude: Mapped[float] = mapped_column(Float, nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    vehicle_id: Mapped[UUIDType | None] = mapped_column(UUID(as_uuid=True), ForeignKey("vehicle.id"), nullable=True)
+    plate_id: Mapped[UUIDType] = mapped_column(UUID(as_uuid=True), ForeignKey("plate.id"), nullable=False)
     
     # Relationships
-    #vehicle: Mapped["Vehicle"] = relationship("Vehicle", back_populates="platessightings")
-    plate: Mapped["Plate"] = relationship("Plate", back_populates="sightings")
+    # vehicle: Mapped["Vehicle"] = relationship(back_populates="sightings")
+    plate: Mapped["Plate"] = relationship(back_populates="sightings")
+
 
 class Plate(Base):
-    __tablename__ = "plates"
+    __tablename__ = "plate"
     
-    id: Mapped[UUID] = sa.Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
-    code: Mapped[str] = sa.Column(sa.String(8), nullable=False)
+    id: Mapped[UUIDType] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    code: Mapped[str] = mapped_column(String(8), nullable=False)
     
-    sightings: Mapped[list["PlateSighting"]] = relationship("PlateSighting", back_populates="plate")
-
-
+    sightings: Mapped[list["PlateSighting"]] = relationship(back_populates="plate")
